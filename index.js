@@ -151,9 +151,6 @@ const PORT = process.env.PORT || 5000 || 3000;
 // });
 
 
-app.get("/", (req, res) => {
-  res.send("API is running 🚀");
-});
 
 
 server.listen(PORT, "0.0.0.0", () => {
