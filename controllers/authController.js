@@ -413,12 +413,13 @@ exports.resendOTP = async (req, res) => {
             return res.status(404).json({ message: "Signup required" });
         }
 
-        // ⏳ Cooldown (60 sec)
+        // ⏳ Cooldown
         if (pendingUser.lastOtpSentAt && Date.now() - pendingUser.lastOtpSentAt < 60000) {
             return res.status(429).json({ message: "Wait before requesting again" });
         }
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
         pendingUser.otp = await bcrypt.hash(otp, 10);
         pendingUser.otpExpires = new Date(Date.now() + 5 * 60 * 1000);
         pendingUser.lastOtpSentAt = Date.now();
@@ -426,46 +427,48 @@ exports.resendOTP = async (req, res) => {
 
         await pendingUser.save();
 
-        await sendEmail({
-            to: email,
-            subject: "New OTP - GSPS",
-            html: `
-  <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
-    <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+        // ✅ Send Email (with error handling)
+        try {
+            await sendEmail({
+                to: email,
+                subject: "Your GSPS Verification Code (Expires in 5 min)",
+                html: `
+                <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
+                  <div style="max-width:600px; margin:auto; background:#fff; border-radius:10px; overflow:hidden;">
+                    
+                    <div style="background:#2563eb; padding:20px; text-align:center;">
+                      <img src="https://gsps.online/logo.png" style="height:50px;" />
+                      <h1 style="color:#fff;">GSPS</h1>
+                    </div>
 
-      <!-- Header -->
-      <div style="background:#2563eb; padding:20px; text-align:center;">
-        <img src="https://gsps.online/logo.png" alt="GSPS Logo" style="height:50px; margin-bottom:10px;" />
-        <h1 style="color:#fff; margin:0;">GSPS</h1>
-      </div>
+                    <div style="padding:30px;">
+                      <h2>Verify Your Email</h2>
+                      <p>Your OTP is:</p>
 
-      <!-- Body -->
-      <div style="padding:30px; color:#333;">
-        <h2>Verify Your Email</h2>
-        <p>Hello,</p>
-        <p>Your verification code is:</p>
+                      <div style="font-size:32px; text-align:center; margin:20px 0; letter-spacing:6px;">
+                        ${otp}
+                      </div>
 
-        <div style="font-size:32px; font-weight:bold; text-align:center; margin:30px 0; letter-spacing:6px;">
-          ${otp}
-        </div>
+                      <p>Expires in 5 minutes.</p>
+                    </div>
 
-        <p>This OTP expires in <b>5 minutes</b>.</p>
-        <p style="font-size:13px; color:#777;">If you didn't request this, ignore this email.</p>
-      </div>
+                    <div style="text-align:center; padding:10px; font-size:12px; color:#999;">
+                      © 2026 GSPS
+                    </div>
 
-      <!-- Footer -->
-      <div style="background:#f9fafb; padding:20px; text-align:center; font-size:12px; color:#999;">
-        © 2026 GSPS. All rights reserved.
-      </div>
+                  </div>
+                </div>
+                `
+            });
+        } catch (err) {
+            console.error("Email Error:", err);
+            return res.status(500).json({ message: "Failed to send OTP email" });
+        }
 
-    </div>
-  </div>
-`
-        });
-
-        res.json({ message: "OTP resent" });
+        res.json({ message: "OTP resent successfully" });
 
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Server Error" });
     }
 };
