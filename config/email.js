@@ -1,13 +1,29 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+// const transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_PASS,
+//     },
+// });
+
+
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465, // অথবা ৫৮৭ ব্যবহার করে দেখুন
+    secure: true, // ৪৬৫ পোর্টের জন্য true, ৫৮৭ পোর্টের জন্য false
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+    tls: {
+        // এটি ইমেইল সার্ভারের সাথে হ্যান্ডশেক করতে সাহায্য করবে
+        rejectUnauthorized: false
+    }
 });
+
 
 const sendEmail = async ({ to, subject, html }) => {
     try {
