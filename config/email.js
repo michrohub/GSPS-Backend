@@ -56,38 +56,7 @@ const sendEmail = async ({ to, subject, html }) => {
             from: "GSPS Verify <verify@gsps.online>",
             to,
             subject,
-            html: `
-  <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
-    <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-
-      <!-- Header -->
-      <div style="background:#2563eb; padding:20px; text-align:center;">
-        <img src="https://gsps.online/logo.png" alt="GSPS Logo" style="height:50px; margin-bottom:10px;" />
-        <h1 style="color:#fff; margin:0;">GSPS</h1>
-      </div>
-
-      <!-- Body -->
-      <div style="padding:30px; color:#333;">
-        <h2>Verify Your Email</h2>
-        <p>Hello,</p>
-        <p>Your verification code is:</p>
-
-        <div style="font-size:32px; font-weight:bold; text-align:center; margin:30px 0; letter-spacing:6px;">
-          ${otp}
-        </div>
-
-        <p>This OTP expires in <b>5 minutes</b>.</p>
-        <p style="font-size:13px; color:#777;">If you didn't request this, ignore this email.</p>
-      </div>
-
-      <!-- Footer -->
-      <div style="background:#f9fafb; padding:20px; text-align:center; font-size:12px; color:#999;">
-        © 2026 GSPS. All rights reserved.
-      </div>
-
-    </div>
-  </div>
-`
+            html,
         });
 
         console.log("✅ Email sent:", response.id);
