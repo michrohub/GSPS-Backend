@@ -1,13 +1,8 @@
 const multer = require('multer');
 const path = require('path');
 
-// Set Storage Engine
-const storage = multer.diskStorage({
-    destination: './uploads/',
-    filename: function(req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
+// Set Storage Engine - Use Memory Storage for Cloudinary
+const storage = multer.memoryStorage();
 
 // Check File Type
 function checkFileType(file, cb) {

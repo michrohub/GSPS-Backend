@@ -1,5 +1,6 @@
 const Payment = require('../models/Payment');
 const User = require('../models/User');
+const { uploadToCloudinary } = require('../config/cloudinary');
 
 // @desc    Create Payment Request
 // @route   POST /api/payments/request
@@ -14,6 +15,12 @@ exports.createPaymentRequest = async (req, res) => {
 
         const savingsAmount = (amount * discountRate).toFixed(2);
 
+        let invoiceUrl = null;
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer, 'payments');
+            invoiceUrl = result.secure_url;
+        }
+
         const payment = await Payment.create({
             user: req.user.id,
             paymentType,
@@ -21,7 +28,7 @@ exports.createPaymentRequest = async (req, res) => {
             currency,
             purpose,
             savingsAmount,
-            invoiceDocument: req.file ? req.file.path : null
+            invoiceDocument: invoiceUrl
         });
 
         res.status(201).json({

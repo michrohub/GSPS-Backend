@@ -1,5 +1,6 @@
 const KYC = require('../models/KYC');
 const User = require('../models/User');
+const { uploadToCloudinary } = require('../config/cloudinary');
 
 // @desc    Submit KYC
 // @route   POST /api/kyc/submit
@@ -12,17 +13,23 @@ exports.submitKYC = async (req, res) => {
             return res.status(400).json({ message: 'KYC already submitted or approved' });
         }
 
+        const documents = {};
+        const fileFields = ['studentPhoto', 'passportFile', 'visaFile', 'universityDocument', 'gobDocument'];
+
+        for (const field of fileFields) {
+            if (req.files[field] && req.files[field][0]) {
+                const result = await uploadToCloudinary(req.files[field][0].buffer, 'kyc');
+                documents[field] = result.secure_url;
+            } else {
+                documents[field] = existingKYC ? existingKYC.documents[field] : null;
+            }
+        }
+
         const kycData = {
             user: req.user.id,
             studentName,
             whatsappNumber,
-            documents: {
-                studentPhoto: req.files['studentPhoto'] ? req.files['studentPhoto'][0].path : null,
-                passportFile: req.files['passportFile'] ? req.files['passportFile'][0].path : null,
-                visaFile: req.files['visaFile'] ? req.files['visaFile'][0].path : null,
-                universityDocument: req.files['universityDocument'] ? req.files['universityDocument'][0].path : null,
-                gobDocument: req.files['gobDocument'] ? req.files['gobDocument'][0].path : null
-            }
+            documents
         };
 
         let kyc;
