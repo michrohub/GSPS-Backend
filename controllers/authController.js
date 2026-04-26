@@ -391,7 +391,8 @@ exports.verifyOTP = async (req, res) => {
                 fullName: newUser.fullName,
                 email: newUser.email,
                 role: newUser.role,
-                kycStatus: newUser.kycStatus
+                kycStatus: newUser.kycStatus,
+                profileImage: newUser.profileImage
             }
         });
 
@@ -494,7 +495,8 @@ exports.login = async (req, res) => {
                     fullName: user.fullName,
                     email: user.email,
                     role: user.role,
-                    kycStatus: user.kycStatus
+                    kycStatus: user.kycStatus,
+                    profileImage: user.profileImage
                 }
             });
 

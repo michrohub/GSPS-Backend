@@ -59,6 +59,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['Silver', 'Gold', 'Diamond'],
         default: 'Silver'
+    },
+    profileImage: {
+        type: String,
+        default: null
     }
 }, { timestamps: true });
 
