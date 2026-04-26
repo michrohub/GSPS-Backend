@@ -8,7 +8,6 @@ const paymentSchema = new mongoose.Schema({
     },
     paymentType: {
         type: String,
-        enum: ['Tuition Fee', 'Application Fee', 'Visa Fee', 'SEVIS Fee', 'Other'],
         required: true
     },
     amount: {
@@ -21,9 +20,15 @@ const paymentSchema = new mongoose.Schema({
     },
     purpose: String,
     invoiceDocument: String, // Path to file
+    transactionId: String,
+    screenshot: String, // Cloudinary URL
+    application: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'FeeApplication'
+    },
     status: {
         type: String,
-        enum: ['Pending', 'Processing', 'Completed', 'Rejected'],
+        enum: ['Pending', 'Processing', 'Completed', 'Rejected', 'Pending Verification'],
         default: 'Pending'
     },
     savingsAmount: {

@@ -1,12 +1,13 @@
 const Payment = require('../models/Payment');
 const User = require('../models/User');
+const FeeApplication = require('../models/FeeApplication');
 const { uploadToCloudinary } = require('../config/cloudinary');
 
 // @desc    Create Payment Request
 // @route   POST /api/payments/request
 exports.createPaymentRequest = async (req, res) => {
     try {
-        const { paymentType, amount, currency, purpose } = req.body;
+        const { paymentType, amount, currency, purpose, applicationId, transactionId } = req.body;
         const user = await User.findById(req.user.id);
 
         let discountRate = 0.03; // Default Silver
@@ -28,8 +29,20 @@ exports.createPaymentRequest = async (req, res) => {
             currency,
             purpose,
             savingsAmount,
-            invoiceDocument: invoiceUrl
+            invoiceDocument: invoiceUrl,
+            screenshot: invoiceUrl,
+            transactionId,
+            application: applicationId || null,
+            status: applicationId ? 'Pending Verification' : 'Pending'
         });
+
+        // If it's a payment for a fee application, update the application status
+        if (applicationId) {
+            await FeeApplication.findByIdAndUpdate(applicationId, {
+                status: 'Pending Verification',
+                payment: payment._id
+            });
+        }
 
         res.status(201).json({
             message: 'Payment request submitted successfully',

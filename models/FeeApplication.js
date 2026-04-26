@@ -35,7 +35,7 @@ const feeApplicationSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Pending', 'Approved', 'Completed', 'Rejected'],
+        enum: ['Pending', 'Approved', 'Completed', 'Rejected', 'Pending Verification'],
         default: 'Pending'
     },
     rejectionReason: {

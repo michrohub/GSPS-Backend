@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const KYC = require('../models/KYC');
 const Payment = require('../models/Payment');
+const FeeApplication = require('../models/FeeApplication');
 
 // @desc    Get all KYC submissions
 // @route   GET /api/admin/kyc
@@ -126,6 +127,11 @@ exports.updatePaymentStatus = async (req, res) => {
                     await referrer.save();
                 }
             }
+        }
+
+        // Sync back to FeeApplication if linked
+        if (payment.application) {
+            await FeeApplication.findByIdAndUpdate(payment.application, { status: status });
         }
 
         res.json({ message: `Payment updated to ${status}`, payment });
