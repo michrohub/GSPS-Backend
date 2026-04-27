@@ -28,8 +28,15 @@ exports.updateProfile = async (req, res) => {
                 id: user._id,
                 fullName: user.fullName,
                 email: user.email,
+                phone: user.phone,
                 role: user.role,
-                profileImage: user.profileImage
+                kycStatus: user.kycStatus,
+                profileImage: user.profileImage,
+                termsAccepted: user.termsAccepted,
+                tier: user.tier,
+                walletBalance: user.walletBalance,
+                referralCount: user.referralCount,
+                referralCode: user.referralCode
             }
         });
     } catch (error) {
