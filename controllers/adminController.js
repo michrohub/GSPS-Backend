@@ -149,10 +149,6 @@ exports.updatePaymentStatus = async (req, res) => {
             }
         }
 
-        // Sync back to FeeApplication if linked
-        if (payment.application) {
-            await FeeApplication.findByIdAndUpdate(payment.application, { status: status });
-        }
 
         res.json({ message: `Payment updated to ${status}`, payment });
     } catch (error) {

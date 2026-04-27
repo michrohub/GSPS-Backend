@@ -65,6 +65,7 @@ exports.applyFee = async (req, res) => {
 exports.getStudentApplications = async (req, res) => {
     try {
         const applications = await FeeApplication.find({ user: req.user._id })
+            .populate('payment')
             .sort({ createdAt: -1 });
         res.json(applications);
     } catch (error) {
@@ -123,10 +124,6 @@ exports.updateStatus = async (req, res) => {
 
         await application.save();
 
-        // Sync status to associated Payment if it exists
-        if (application.payment) {
-            await Payment.findByIdAndUpdate(application.payment, { status: status });
-        }
 
         res.json({ message: `Application marked as ${status}`, application });
     } catch (error) {

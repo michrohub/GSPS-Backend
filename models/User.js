@@ -63,6 +63,14 @@ const userSchema = new mongoose.Schema({
     profileImage: {
         type: String,
         default: null
+    },
+    termsAccepted: {
+        type: Boolean,
+        default: false
+    },
+    termsAcceptedName: {
+        type: String,
+        default: null
     }
 }, { timestamps: true });
 

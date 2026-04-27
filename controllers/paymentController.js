@@ -36,10 +36,9 @@ exports.createPaymentRequest = async (req, res) => {
             status: applicationId ? 'Pending Verification' : 'Pending'
         });
 
-        // If it's a payment for a fee application, update the application status
+        // If it's a payment for a fee application, link it
         if (applicationId) {
             await FeeApplication.findByIdAndUpdate(applicationId, {
-                status: 'Pending Verification',
                 payment: payment._id
             });
         }

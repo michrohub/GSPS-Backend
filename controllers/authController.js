@@ -392,7 +392,8 @@ exports.verifyOTP = async (req, res) => {
                 email: newUser.email,
                 role: newUser.role,
                 kycStatus: newUser.kycStatus,
-                profileImage: newUser.profileImage
+                profileImage: newUser.profileImage,
+                termsAccepted: newUser.termsAccepted
             }
         });
 
@@ -496,7 +497,8 @@ exports.login = async (req, res) => {
                     email: user.email,
                     role: user.role,
                     kycStatus: user.kycStatus,
-                    profileImage: user.profileImage
+                    profileImage: user.profileImage,
+                    termsAccepted: user.termsAccepted
                 }
             });
 
@@ -514,6 +516,37 @@ exports.getMe = async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
         res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+// @desc    Accept Terms & Conditions
+exports.acceptTerms = async (req, res) => {
+    try {
+        const { name } = req.body;
+        if (!name) {
+            return res.status(400).json({ message: "Full name is required to accept terms" });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        user.termsAccepted = true;
+        user.termsAcceptedName = name;
+        await user.save();
+
+        res.json({ 
+            message: "Terms accepted successfully", 
+            user: {
+                id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                role: user.role,
+                kycStatus: user.kycStatus,
+                profileImage: user.profileImage,
+                termsAccepted: user.termsAccepted
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: "Server Error" });
     }
