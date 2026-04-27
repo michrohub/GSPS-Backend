@@ -109,22 +109,42 @@ exports.updatePaymentStatus = async (req, res) => {
             // Check if this is the user's first completed payment
             const completedCount = await Payment.countDocuments({ user: user._id, status: 'Completed' });
             
-            if (completedCount === 1 && user.referredBy) {
-                // Credit the referrer
-                const referrer = await User.findById(user.referredBy);
-                if (referrer) {
-                    const commission = 20; // Example fixed $20 commission
-                    referrer.walletBalance += commission;
-                    referrer.referralCount += 1;
+            if (completedCount === 1) {
+                // 1. Re-evaluate user's OWN tier now that they have their first payment
+                if (user.referralCount >= 10) {
+                    user.tier = 'Diamond';
+                } else if (user.referralCount >= 5) {
+                    user.tier = 'Gold';
+                }
+                await user.save();
 
-                    // Tier Upgrade Logic
-                    if (referrer.referralCount >= 10) {
-                        referrer.tier = 'Diamond';
-                    } else if (referrer.referralCount >= 3) {
-                        referrer.tier = 'Gold';
+                // 2. Handle referrer logic
+                if (user.referredBy) {
+                    const referrer = await User.findById(user.referredBy);
+                    if (referrer) {
+                        referrer.referralCount += 1;
+
+                        // Check if referrer is eligible (has at least 1 completed payment)
+                        const referrerPayments = await Payment.countDocuments({ 
+                            user: referrer._id, 
+                            status: 'Completed' 
+                        });
+
+                        if (referrerPayments > 0) {
+                            // Award commission
+                            const commission = 20; 
+                            referrer.walletBalance += commission;
+
+                            // Update referrer tier with new thresholds (Gold: 5, Diamond: 10)
+                            if (referrer.referralCount >= 10) {
+                                referrer.tier = 'Diamond';
+                            } else if (referrer.referralCount >= 5) {
+                                referrer.tier = 'Gold';
+                            }
+                        }
+                        
+                        await referrer.save();
                     }
-
-                    await referrer.save();
                 }
             }
         }
