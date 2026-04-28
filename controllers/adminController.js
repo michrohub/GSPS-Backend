@@ -49,6 +49,11 @@ exports.updateKYCStatus = async (req, res) => {
         // Sync with User model
         await User.findByIdAndUpdate(kyc.user, { kycStatus: status });
 
+        // If KYC approved, check for referral bonus
+        if (status === 'approved') {
+            await exports.checkAndAwardReferralBonus(kyc.user);
+        }
+
         res.json({ message: `KYC status updated to ${status}`, kyc });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -104,49 +109,7 @@ exports.updatePaymentStatus = async (req, res) => {
 
         // Logic: If status changed to Completed, check for referral commission
         if (status === 'Completed' && previousStatus !== 'Completed') {
-            const user = await User.findById(payment.user);
-            
-            // Check if this is the user's first completed payment
-            const completedCount = await Payment.countDocuments({ user: user._id, status: 'Completed' });
-            
-            if (completedCount === 1) {
-                // 1. Re-evaluate user's OWN tier now that they have their first payment
-                if (user.referralCount >= 10) {
-                    user.tier = 'Diamond';
-                } else if (user.referralCount >= 5) {
-                    user.tier = 'Gold';
-                }
-                await user.save();
-
-                // 2. Handle referrer logic
-                if (user.referredBy) {
-                    const referrer = await User.findById(user.referredBy);
-                    if (referrer) {
-                        referrer.referralCount += 1;
-
-                        // Check if referrer is eligible (has at least 1 completed payment)
-                        const referrerPayments = await Payment.countDocuments({ 
-                            user: referrer._id, 
-                            status: 'Completed' 
-                        });
-
-                        if (referrerPayments > 0) {
-                            // Award commission
-                            const commission = 20; 
-                            referrer.walletBalance += commission;
-
-                            // Update referrer tier with new thresholds (Gold: 5, Diamond: 10)
-                            if (referrer.referralCount >= 10) {
-                                referrer.tier = 'Diamond';
-                            } else if (referrer.referralCount >= 5) {
-                                referrer.tier = 'Gold';
-                            }
-                        }
-                        
-                        await referrer.save();
-                    }
-                }
-            }
+            await exports.checkAndAwardReferralBonus(payment.user);
         }
 
 
@@ -204,3 +167,49 @@ exports.getAnalytics = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+/**
+ * Helper: Check if a user has completed onboarding + payment and award referral bonus to referrer
+ */
+exports.checkAndAwardReferralBonus = async function(userId) {
+    try {
+        const user = await User.findById(userId);
+        if (!user || user.isReferralCounted) return;
+
+        // Conditions: 1. Email Verified, 2. KYC Approved, 3. Terms Accepted, 4. At least 1 Completed Payment
+        const hasCompletedPayment = await Payment.findOne({ user: userId, status: 'Completed' });
+        
+        if (user.isVerified && user.kycStatus === 'approved' && user.termsAccepted && hasCompletedPayment) {
+            
+            // 1. Re-evaluate user's OWN tier based on THEIR referrals (just in case)
+            if (user.referralCount >= 10) user.tier = 'Diamond';
+            else if (user.referralCount >= 5) user.tier = 'Gold';
+            else user.tier = 'Silver';
+
+            // 2. Handle referrer logic
+            if (user.referredBy) {
+                const referrer = await User.findById(user.referredBy);
+                if (referrer) {
+                    // Increment referral count
+                    referrer.referralCount += 1;
+
+                    // Award bonus ($50)
+                    referrer.walletBalance += 50;
+
+                    // Update referrer tier
+                    if (referrer.referralCount >= 10) referrer.tier = 'Diamond';
+                    else if (referrer.referralCount >= 5) referrer.tier = 'Gold';
+                    
+                    await referrer.save();
+                }
+            }
+
+            // 3. Mark as counted and save
+            user.isReferralCounted = true;
+            await user.save();
+            console.log(`Referral bonus awarded for user ${user.email}`);
+        }
+    } catch (error) {
+        console.error('Error in checkAndAwardReferralBonus:', error);
+    }
+}

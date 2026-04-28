@@ -1,7 +1,3 @@
-// const User = require('../models/User');
-// const jwt = require('jsonwebtoken');
-// const bcrypt = require('bcryptjs');
-// const { sendEmail } = require('../config/email');
 
 // // Generate JWT Token
 // const generateToken = (id) => {
@@ -247,6 +243,7 @@ const PendingUser = require('../models/PendingUser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { sendEmail } = require('../config/email');
+const { checkAndAwardReferralBonus } = require('./adminController');
 
 // 🔐 Generate JWT Token
 const generateToken = (id) => {
@@ -289,7 +286,10 @@ exports.signup = async (req, res) => {
         // 5️⃣ Referral
         let referrerId = null;
         if (referredBy) {
-            const referrer = await User.findOne({ referralCode: referredBy });
+            let searchCode = referredBy.toUpperCase().trim();
+            if (!searchCode.startsWith('GSPS')) searchCode = 'GSPS' + searchCode;
+            
+            const referrer = await User.findOne({ referralCode: searchCode });
             if (referrer) referrerId = referrer._id;
         }
 
@@ -368,7 +368,7 @@ exports.verifyOTP = async (req, res) => {
         }
 
         // 🔥 Generate referral code
-        const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const referralCode = 'GSPS' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
         // ✅ Create user
         const newUser = await User.create({
@@ -393,7 +393,13 @@ exports.verifyOTP = async (req, res) => {
                 role: newUser.role,
                 kycStatus: newUser.kycStatus,
                 profileImage: newUser.profileImage,
-                termsAccepted: newUser.termsAccepted
+                termsAccepted: newUser.termsAccepted,
+                referredBy: newUser.referredBy,
+                walletBalance: newUser.walletBalance,
+                referralCount: newUser.referralCount,
+                referralCode: newUser.referralCode,
+                tier: newUser.tier,
+                isReferralCounted: newUser.isReferralCounted
             }
         });
 
@@ -498,7 +504,13 @@ exports.login = async (req, res) => {
                     role: user.role,
                     kycStatus: user.kycStatus,
                     profileImage: user.profileImage,
-                    termsAccepted: user.termsAccepted
+                    termsAccepted: user.termsAccepted,
+                    referredBy: user.referredBy,
+                    walletBalance: user.walletBalance,
+                    referralCount: user.referralCount,
+                    referralCode: user.referralCode,
+                    tier: user.tier,
+                    isReferralCounted: user.isReferralCounted
                 }
             });
 
@@ -535,6 +547,9 @@ exports.acceptTerms = async (req, res) => {
         user.termsAcceptedName = name;
         await user.save();
 
+        // Trigger referral check
+        await checkAndAwardReferralBonus(user._id);
+
         res.json({ 
             message: "Terms accepted successfully", 
             user: {
@@ -544,7 +559,13 @@ exports.acceptTerms = async (req, res) => {
                 role: user.role,
                 kycStatus: user.kycStatus,
                 profileImage: user.profileImage,
-                termsAccepted: user.termsAccepted
+                termsAccepted: user.termsAccepted,
+                referredBy: user.referredBy,
+                walletBalance: user.walletBalance,
+                referralCount: user.referralCount,
+                referralCode: user.referralCode,
+                tier: user.tier,
+                isReferralCounted: user.isReferralCounted
             }
         });
     } catch (error) {

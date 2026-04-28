@@ -71,6 +71,10 @@ const userSchema = new mongoose.Schema({
     termsAcceptedName: {
         type: String,
         default: null
+    },
+    isReferralCounted: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 
