@@ -10,11 +10,7 @@ exports.createPaymentRequest = async (req, res) => {
         const { paymentType, amount, currency, purpose, applicationId, transactionId } = req.body;
         const user = await User.findById(req.user.id);
 
-        let discountRate = 0.20; // Default Silver (20%)
-        if (user.tier === 'Gold') discountRate = 0.25; // Gold (25%)
-        if (user.tier === 'Diamond') discountRate = 0.30; // Diamond/Premium (30%)
-
-        const savingsAmount = (amount * discountRate).toFixed(2);
+        const savingsAmount = 0; // Admin calculates manually now
 
         let invoiceUrl = null;
         if (req.file) {

@@ -112,7 +112,7 @@ exports.updateStatus = async (req, res) => {
 
         if (status === 'Completed') {
             if (!finalAmount) {
-                return res.status(400).json({ message: 'Final payment amount is required' });
+                return res.status(400).json({ message: 'Final payment amount is required to complete' });
             }
             application.finalAmount = finalAmount;
             
@@ -126,6 +126,39 @@ exports.updateStatus = async (req, res) => {
 
 
         res.json({ message: `Application marked as ${status}`, application });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Update fee type (Admin only)
+// @route   PUT /api/fee-applications/fee-types/:id
+exports.updateFeeType = async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const type = await FeeType.findById(req.params.id);
+        if (!type) {
+            return res.status(404).json({ message: 'Fee type not found' });
+        }
+        type.name = name || type.name;
+        type.description = description || type.description;
+        await type.save();
+        res.json(type);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Delete fee type (Admin only)
+// @route   DELETE /api/fee-applications/fee-types/:id
+exports.deleteFeeType = async (req, res) => {
+    try {
+        const type = await FeeType.findById(req.params.id);
+        if (!type) {
+            return res.status(404).json({ message: 'Fee type not found' });
+        }
+        await type.deleteOne();
+        res.json({ message: 'Fee type removed' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

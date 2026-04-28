@@ -57,8 +57,8 @@ const userSchema = new mongoose.Schema({
     },
     tier: {
         type: String,
-        enum: ['Silver', 'Gold', 'Diamond'],
-        default: 'Silver'
+        enum: ['None', 'Silver', 'Gold', 'Premium'],
+        default: 'None'
     },
     profileImage: {
         type: String,

@@ -6,7 +6,9 @@ const {
     getAllApplications, 
     updateStatus, 
     getFeeTypes, 
-    createFeeType 
+    createFeeType,
+    updateFeeType,
+    deleteFeeType
 } = require('../controllers/feeApplicationController');
 const { protect, admin } = require('../middleware/authMiddleware');
 const multer = require('multer');
@@ -31,6 +33,8 @@ router.get('/my', protect, getStudentApplications);
 
 // Admin Routes
 router.post('/fee-types', protect, admin, createFeeType);
+router.put('/fee-types/:id', protect, admin, updateFeeType);
+router.delete('/fee-types/:id', protect, admin, deleteFeeType);
 router.get('/all', protect, admin, getAllApplications);
 router.put('/:id/status', protect, admin, upload.single('invoice'), updateStatus);
 
