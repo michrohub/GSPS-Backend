@@ -17,10 +17,17 @@ exports.submitKYC = async (req, res) => {
         const fileFields = ['studentPhoto', 'passportFile', 'visaFile', 'universityDocument', 'gobDocument'];
 
         for (const field of fileFields) {
-            if (req.files[field] && req.files[field][0]) {
+            // Check if URL was sent in body (direct frontend upload)
+            if (req.body[field] && typeof req.body[field] === 'string' && req.body[field].startsWith('http')) {
+                documents[field] = req.body[field];
+            } 
+            // Check if file was uploaded via multer
+            else if (req.files && req.files[field] && req.files[field][0]) {
                 const result = await uploadToCloudinary(req.files[field][0].buffer, 'kyc');
                 documents[field] = result.secure_url;
-            } else {
+            } 
+            // Fallback to existing or null
+            else {
                 documents[field] = existingKYC ? existingKYC.documents[field] : null;
             }
         }

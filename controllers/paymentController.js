@@ -7,12 +7,12 @@ const { uploadToCloudinary } = require('../config/cloudinary');
 // @route   POST /api/payments/request
 exports.createPaymentRequest = async (req, res) => {
     try {
-        const { paymentType, amount, currency, purpose, applicationId, transactionId } = req.body;
+        const { paymentType, amount, currency, purpose, applicationId, transactionId, screenshotUrl } = req.body;
         const user = await User.findById(req.user.id);
 
         const savingsAmount = 0; // Admin calculates manually now
 
-        let invoiceUrl = null;
+        let invoiceUrl = screenshotUrl || null;
         if (req.file) {
             const result = await uploadToCloudinary(req.file.buffer, 'payments');
             invoiceUrl = result.secure_url;

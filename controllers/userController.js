@@ -17,7 +17,9 @@ exports.updateProfile = async (req, res) => {
 
         if (fullName) user.fullName = fullName;
 
-        if (req.file) {
+        if (req.body.profileImageUrl) {
+            user.profileImage = req.body.profileImageUrl;
+        } else if (req.file) {
             const result = await uploadToCloudinary(req.file.buffer, 'profiles');
             user.profileImage = result.secure_url;
         }
