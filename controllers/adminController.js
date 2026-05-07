@@ -182,8 +182,8 @@ exports.checkAndAwardReferralBonus = async function(userId) {
         if (user.isVerified && user.kycStatus === 'approved' && user.termsAccepted && hasCompletedPayment) {
             
             // 1. Re-evaluate user's OWN tier based on THEIR referrals (just in case)
-            if (user.referralCount >= 10) user.tier = 'Premium';
-            else if (user.referralCount >= 5) user.tier = 'Gold';
+            if (user.referralCount >= 50) user.tier = 'Diamond';
+            else if (user.referralCount >= 25) user.tier = 'Golden';
             else if (user.referralCount >= 3) user.tier = 'Silver';
             else user.tier = 'None';
 
@@ -198,8 +198,8 @@ exports.checkAndAwardReferralBonus = async function(userId) {
                     referrer.walletBalance += 50;
 
                     // Update referrer tier
-                    if (referrer.referralCount >= 10) referrer.tier = 'Premium';
-                    else if (referrer.referralCount >= 5) referrer.tier = 'Gold';
+                    if (referrer.referralCount >= 50) referrer.tier = 'Diamond';
+                    else if (referrer.referralCount >= 25) referrer.tier = 'Golden';
                     else if (referrer.referralCount >= 3) referrer.tier = 'Silver';
                     
                     await referrer.save();

@@ -35,6 +35,7 @@ app.use("/api/chat", require("./routes/chat"));
 app.use("/api/fee-applications", require("./routes/feeApplication"));
 app.use("/api/user", require("./routes/user"));
 app.use("/api/wallet", require("./routes/walletRoutes"));
+app.use("/api/guides", require("./routes/guideRoutes"));
 
 app.get("/", (req, res) => {
   res.send("GSPS API is running...");

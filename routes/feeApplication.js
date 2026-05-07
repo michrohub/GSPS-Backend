@@ -11,20 +11,7 @@ const {
     deleteFeeType
 } = require('../controllers/feeApplicationController');
 const { protect, admin } = require('../middleware/authMiddleware');
-const multer = require('multer');
-const path = require('path');
-
-// Multer config for invoice uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, `invoice-${Date.now()}${path.extname(file.originalname)}`);
-    }
-});
-
-const upload = multer({ storage });
+const upload = require('../middleware/uploadMiddleware');
 
 // Public/Student Routes
 router.get('/fee-types', getFeeTypes);

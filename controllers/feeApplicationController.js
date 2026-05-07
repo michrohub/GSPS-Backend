@@ -1,6 +1,7 @@
 const FeeApplication = require('../models/FeeApplication');
 const FeeType = require('../models/FeeType');
 const Payment = require('../models/Payment');
+const { uploadToCloudinary } = require('../config/cloudinary');
 
 // @desc    Get all fee types
 // @route   GET /api/fee-applications/fee-types
@@ -118,7 +119,8 @@ exports.updateStatus = async (req, res) => {
             
             // If file was uploaded
             if (req.file) {
-                application.invoiceUrl = `/uploads/${req.file.filename}`;
+                const result = await uploadToCloudinary(req.file.buffer, 'invoices');
+                application.invoiceUrl = result.secure_url;
             }
         }
 
